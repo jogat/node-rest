@@ -1,0 +1,17 @@
+{
+    "database": {
+        "host": "127.0.0.1",
+        "user": "root",
+        "password": "",
+        "connectionLimit": 10,
+        "database": "cms",
+        "debug": false
+    },
+    "server": {
+        "port": 3306,
+        "pageSize": 100,
+        "logger": {
+            "format": "tiny"
+        }
+    }
+}

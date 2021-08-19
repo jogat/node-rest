@@ -25,11 +25,11 @@ class Server {
 
     routes() {
 
-        this.app.use( this.#ws('/v1'), require('../routes/v1.routes'))
+        this.app.use( this.ws('/v1'), require('../routes/v1.routes'))
 
     }
 
-    #ws(route) {
+    ws(route) {
         return `${this.prefix}${route}`;
     }
 

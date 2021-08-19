@@ -1,11 +1,24 @@
 const {request, response} = require('express');
+const WS = require('../models/ws');
 
-class UserController {
+class UserController {    
 
-    index = (req = request, res = response)=> {        
-        res.json({
-            'msg': 'Index - controlador'
-        })
+    async index (req = request, res = response){  
+        
+        try {
+
+            let results = await WS.session().login();
+
+            res.json({
+                'msg': 'index - controlador',
+                "results": results[0]
+            })
+
+
+        } catch(err) {
+            res.status(401).send('Invalid Login.');
+        }
+        
     }
 
     create = (req = request, res = response)=> {  

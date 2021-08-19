@@ -1,9 +1,6 @@
 require('dotenv').config();
-global.common = require('./helper/common');
-const Server = require('./models/server');
-
-
-
+global.common = require('./app/helper/common');
+const Server = require('./app/models/server');
 
 const server = new Server();
 server.listen();
