@@ -1,9 +1,11 @@
 const  {Router} = require('express');
-const userController = require('../../controllers/user.controller')
+const middlewares = require('../../http/middleware')
+const userController = require('../../http/controllers/user.controller')
 
 const router = Router();
 
-router.get('/', userController.index);
+
+router.get('/',  userController.index);
 router.get('/:id', userController.show);
 router.put('/:id', userController.update);
 router.post('/', userController.create);

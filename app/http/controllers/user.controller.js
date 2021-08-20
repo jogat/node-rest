@@ -1,13 +1,15 @@
 const {request, response} = require('express');
-const WS = require('../models/ws');
+const WS = require('../../models/ws');
 
-class UserController {    
+class UserController {
 
     async index (req = request, res = response){  
-        
+                
         try {
 
-            let results = await WS.session().login();
+            const {email, password} = req.body;
+
+            let results = await WS.session().login(email, password);
 
             res.json({
                 'msg': 'index - controlador',

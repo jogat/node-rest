@@ -1,19 +1,31 @@
-const configs = require("../config");
+const configs = require("../../config");
 const database = require('./db');
-const Session = require('./ws/session');
-
 
 class WS {
 
     constructor() {
-        // @todo: implement dynamic database name
         this.db = database.init(configs.getDatabaseConfig())
     }
 
-    session() {
-        return new Session(this.db);
+    session(userID) {
+        const Session = require('./ws/session');
+        return new Session(this.db, userID);
+    }
+
+    user(userID) {
+        const User = require('./ws/user');
+        return new User(this.db, userID);
+    }
+
+    setTenantDatabase(tenantToken) {
+        let tenantId = 1;
+        //@todo: get tenant id by tenantToken
+        this.db = database.init(configs.getDatabaseConfig(tenantId))
     }
 
 }
 
-module.exports = new WS();
+const ws = new WS();
+Object.freeze(ws);
+
+module.exports = ws;
