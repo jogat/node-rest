@@ -1,6 +1,6 @@
 const  {Router} = require('express');
 const middleware = require('../../http/middleware')
-const sessionController = require('../../http/controllers/session.controller')
+const sessionController = require('../../http/controllers/Session.controller')
 
 const router = Router();
 

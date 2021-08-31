@@ -1,15 +1,15 @@
 const  {Router} = require('express');
 const middlewares = require('../../http/middleware')
-const userController = require('../../http/controllers/user.controller')
+const userController = require('../../http/controllers/User.controller')
 
 const router = Router();
 
+router.use(middlewares.JWTVerification, (req, res, next)=> {
+    router.get('/', userController.show);
+    router.put('/', userController.update);
+    next();
+});
 
-router.get('/',  userController.index);
-router.get('/:id', userController.show);
-router.put('/:id', userController.update);
-router.post('/', userController.create);
-router.delete('/', userController.destroy);
 
 
 module.exports = router;

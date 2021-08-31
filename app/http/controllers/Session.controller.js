@@ -1,5 +1,5 @@
 const {request, response} = require('express');
-const WS = require('../../models/ws');
+const WS = require('../../providers/WS');
 
 class SessionController {
 
@@ -30,19 +30,10 @@ class SessionController {
 
         try {
 
-            let user = WS.user(req.token.userId);
-
-            let userData = {
-                'info': await user.info(),
-                'access': await user.access(),
-                'meta': await user.meta(),
-                'role': await user.role(),
-            }
-
-            res.json(userData)
+            res.json(req._user);
 
         } catch(err) {
-            res.status(err.code || 500).send(err.message || 'Invalid Login');
+            res.status(err.code || 500).send(err.message);
         }
 
     }
