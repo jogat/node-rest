@@ -8,7 +8,6 @@ module.exports.getDatabaseConfig = function (tenantId) {
         databaseConfig.database = `_${tenantId}`;
     }
 
-    console.log(databaseConfig);
 
     return databaseConfig;
 }

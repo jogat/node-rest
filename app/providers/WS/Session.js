@@ -1,12 +1,15 @@
 const customError = require('../../helper/customError')
-const WS = require('../ws')
+const WS = require('../WS')
+const Database = require('../../db')
 
 class Session {
 
+    #db;
+    #id;
 
-    constructor(database, userID) {
-        this.db = database;
-        this.id = userID;
+    constructor(database = Database, user) {
+        this.#db = database;
+        this.#id = user;
     }
 
     async login(email, password, tenant, platform) {
@@ -15,7 +18,7 @@ class Session {
 
             const query = "SELECT id, password FROM `user` WHERE status > 0 AND email = ? LIMIT 1";
 
-            let conn = await this.db.getConnection();
+            let conn = await this.#db.getConnection();
             const [rows] = await conn.execute(query, [email]);
             conn.release();
 
@@ -27,7 +30,7 @@ class Session {
                 throw new customError(401, 'username or password is invalid');
             }
 
-            this.id = rows[0]['id'];
+            this.#id = rows[0]['id'];
             this.tenant = tenant;
             this.platform = platform;
 
@@ -41,13 +44,13 @@ class Session {
 
     async #initiateSession() {
 
-        let user = WS.user(this.id);
+        let user = WS.user(this.#id);
         let accessTokenExpiration = parseInt(process.env.ACCESS_TOKEN_EXPIRATION);
         let issued = new Date();
         let expires = new Date(issued.getTime() + (accessTokenExpiration * 1000));
         let userData = {
             'info': await user.info(),
-            'access': await user.access(),
+            'access': await user.access().get(),
             'meta': await user.meta(),
             'role': await user.role(),
             'issued': issued,
@@ -56,11 +59,16 @@ class Session {
 
         const jwt = require('jsonwebtoken');
         let accessToken = jwt.sign({
-            userId: this.id,
-            email: userData.info.email,
+            info: userData.info,
+            access: userData.access,
+            meta: userData.meta,
+            role: userData.role,
             tenant: this.tenant,
-            platform: this.platform
+            platform: this.platform,
+
         }, process.env.JWT_KEY, { expiresIn: accessTokenExpiration });
+
+        accessToken = `Bearer ${accessToken}`
 
         return {userData, accessToken};
     }

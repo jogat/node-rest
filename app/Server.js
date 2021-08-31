@@ -1,4 +1,5 @@
 const express = require('express');
+const fileUpload = require('express-fileupload');
 
 class Server {
 
@@ -8,34 +9,32 @@ class Server {
         this.port = process.env.PORT;
         this.prefix = process.env.PREFIX;
         
-        //Middlewares
+        //Global Middlewares
         this.middlewares();
-        //Rutas de aplication
+        //application routes
         this.routes();
 
     }
 
     middlewares() {
-
-        // lectura y parseo de body
+        // read and parse body
         this.app.use(express.json());
-        // directrio publico
+        //upload files
+        this.app.use(fileUpload({
+            useTempFiles : true,
+            tempFileDir : '../storage/app/public/'
+        }));
+        // public directory
         this.app.use(express.static('public'));
     }
 
     routes() {
-
-        this.app.use( this.ws('/v1'), require('../routes/v1.routes'))
-
-    }
-
-    ws(route) {
-        return `${this.prefix}${route}`;
+        this.app.use( `${this.prefix}/v1` , require('./routes/v1.routes'));
     }
 
     listen() {
         this.app.listen(this.port, ()=> {
-            console.log('Servicor correindo en puerto: ', this.port);
+            console.log('Running server in port: ', this.port);
         })
     }
 

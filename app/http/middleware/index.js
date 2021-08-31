@@ -1,5 +1,6 @@
 const {request, response} = require('express');
 
+
 module.exports = {
 
     JWTVerification: function(req = request, res = response, next){
@@ -16,8 +17,7 @@ module.exports = {
             if (err) {
                 return res.status(403).send('Forbidden')
             } else {
-                console.log(authData);
-                req.token = authData
+                req._user = authData
             }
 
         });
