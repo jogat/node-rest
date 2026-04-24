@@ -5,8 +5,9 @@ module.exports = {
 
     JWTVerification: function(req = request, res = response, next){
 
+        console.log(req.headers)
         if (!req.headers.authorization) {
-            return res.status(403).send('Forbidden')
+            return res.status(403).send('Unauthorized')
         }
 
         const jwt = require('jsonwebtoken');

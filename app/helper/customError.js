@@ -11,6 +11,9 @@ class CustomError extends Error {
         this.name = 'CustomError'
         // Custom debugging information
         this.code = code;
+        if (isNaN(this.code)) {
+            this.code = 500;
+        }
         this.date = new Date()
     }
 }

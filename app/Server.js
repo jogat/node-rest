@@ -26,6 +26,21 @@ class Server {
         }));
         // public directory
         this.app.use(express.static('public'));
+
+        if (process.env.DEBUG_MODE == "true") {
+            this.app.use(function(req = request, res = response, next){  
+                console.log(Date.now())              
+                console.log({
+                    method: req.method, 
+                    url: req.url, 
+                    body: req.body,
+                    query: req.query
+                })
+                next();
+            });
+        }
+
+        
     }
 
     routes() {

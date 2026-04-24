@@ -1,6 +1,7 @@
 const customError = require('../../helper/customError')
 const WS = require('../WS')
-const Database = require('../../db')
+const Database = require('../../db');
+const User = require('./User');
 
 class Session {
 
@@ -17,11 +18,16 @@ class Session {
         try {
 
             const query = "SELECT id, password FROM `user` WHERE status > 0 AND email = ? LIMIT 1";
+            let rows = [];
 
-            let conn = await this.#db.getConnection();
-            const [rows] = await conn.execute(query, [email]);
-            conn.release();
-
+            try {
+                let conn = await this.#db.getConnection();
+                [rows] = await conn.execute(query, [email]);
+                conn.release();
+            } catch (error) {
+                throw new customError(500, 'Failed to connect into database');
+            }
+            
             if (!rows.length) {
                 throw new customError(400, 'Not found user');
             }
@@ -36,7 +42,7 @@ class Session {
 
             return await this.#initiateSession();
 
-        } catch(err) {
+        } catch(err) {            
             throw new customError(err.code || 500, err.message);
         }
 

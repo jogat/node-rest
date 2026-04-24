@@ -15,7 +15,8 @@ class PostController {
             res.json(result);
 
         } catch (err) {
-            res.status(err.code || 500).send(err.message);
+            console.log('josue')
+            //res.send(err.message);
         }
         
     }

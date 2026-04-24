@@ -357,6 +357,7 @@ class Post {
             'json_data': post.json_data,
             'last_published_date': post.last_published_date,
             'comment_count': post.comment_count,
+            'featured': false,
             'status': {
                 'id': post.status,
                 'title':post.status_title,

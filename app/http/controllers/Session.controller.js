@@ -9,18 +9,15 @@ class SessionController {
 
             const {email, password, tenant_token, platform} = req.body;
 
-            if (!email || !email.length) { res.status(400).send('Missing email'); }
-            if (!password || !password.length) { res.status(400).send('Missing password'); }
+            if (!email || !email.length) { return res.status(400).send('Missing email'); }
+            if (!password || !password.length) { return res.status(400).send('Missing password'); }
 
             let results = await WS.session().login(email, password, tenant_token, platform);
 
-            res.json({
-                'msg': 'index - controlador',
-                "results": results
-            })
+            res.json(results);
 
 
-        } catch(err) {
+        } catch(err) {            
             res.status(err.code || 401).send(err.message || 'Invalid Login');
         }
         
