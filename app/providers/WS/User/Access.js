@@ -15,6 +15,8 @@ class Access {
 
     async get(slug=null) {
 
+        let conn;
+
         try {
 
             const query = `SELECT access.*
@@ -30,9 +32,8 @@ class Access {
             ) as results
             LEFT JOIN access ON access.id=results.id`;
 
-            let conn = await this.#db.getConnection();
+            conn = await this.#db.getConnection();
             const [rows] = await conn.execute(query, [this.#user.id(), this.#user.id()]);
-            conn.release();
 
             let access = [];
 
@@ -56,6 +57,10 @@ class Access {
 
         } catch (err) {
             throw new customError(500, err.message)
+        } finally {
+            if (conn) {
+                conn.release();
+            }
         }
 
     }

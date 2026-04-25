@@ -16,11 +16,13 @@ class PostType {
 
     async get() {
 
+        let db;
+
         try {
 
             await this.#check()
 
-            let db = await _knext(await this.#db.getConnection());
+            db = await _knext(this.#db);
 
             let query = db.from('post_type');
 
@@ -32,6 +34,10 @@ class PostType {
 
         } catch (err) {
             throw new customError(err.code || 500, err.message)
+        } finally {
+            if (db) {
+                await db.destroy();
+            }
         }
 
     }
@@ -39,19 +45,19 @@ class PostType {
     async #check () {
 
 
+        let db;
+
         try {
             if (this.#id !== null) {
 
-                console.log(this.#id)
-
-                let db = await _knext(await this.#db.getConnection());
+                db = await _knext(this.#db);
 
                 if (!isNaN(this.#id)) {
                     this.#id = parseInt(this.#id);
                     return;
                 }
 
-                let post_type = await  db('cms').table('post_type')
+                let post_type = await db.table('post_type')
                     .where('slug', this.#id)
                     .first('id')
 
@@ -64,6 +70,10 @@ class PostType {
             }
         } catch (err) {
             throw new customError(err.code || 500, err.message)
+        } finally {
+            if (db) {
+                await db.destroy();
+            }
         }
 
     }

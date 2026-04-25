@@ -1,7 +1,4 @@
 const customError = require('../helper/customError');
-const {request} = require('express');
-const { attachPaginate } = require('knex-paginate');
-attachPaginate();
 
 async function paginate(dbConnection, query,queryParameters=[], page= 1,itemsPerPage = 10, closeConnection = false) {
 
@@ -76,16 +73,22 @@ async function paginate(dbConnection, query,queryParameters=[], page= 1,itemsPer
 
 async function _knext (dbConnection) {
 
+    let config = dbConnection.config || {};
+
+    if (dbConnection.pool && dbConnection.pool.config && dbConnection.pool.config.connectionConfig) {
+        config = dbConnection.pool.config.connectionConfig;
+    }
+
     return require('knex')({
         client: 'mysql',
         connection: {
-            host : dbConnection.config.host,
-            user : dbConnection.config.user,
-            password : dbConnection.config.password || '',
-            database : dbConnection.config.database
+            host : config.host,
+            user : config.user,
+            password : config.password || '',
+            database : config.database
         }
     });
 
 }
 
-module.exports = { _knext};
+module.exports = { paginate, _knext};

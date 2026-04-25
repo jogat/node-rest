@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 global.common = require('./app/helper/common');
 const Server = require('./app/Server');
 

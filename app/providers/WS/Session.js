@@ -19,13 +19,17 @@ class Session {
 
             const query = "SELECT id, password FROM `user` WHERE status > 0 AND email = ? LIMIT 1";
             let rows = [];
+            let conn;
 
             try {
-                let conn = await this.#db.getConnection();
+                conn = await this.#db.getConnection();
                 [rows] = await conn.execute(query, [email]);
-                conn.release();
             } catch (error) {
                 throw new customError(500, 'Failed to connect into database');
+            } finally {
+                if (conn) {
+                    conn.release();
+                }
             }
             
             if (!rows.length) {

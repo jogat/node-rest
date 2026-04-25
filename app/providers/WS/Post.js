@@ -3,6 +3,7 @@ const {paginate, _knext} = require('../../helper/common');
 const Database = require('../../db');
 const User = require('../WS/User')
 const {Storage} = require('../../helper');
+const path = require('path');
 
 class Post {
 
@@ -17,6 +18,8 @@ class Post {
     }
 
     async userFeed_old(user= User, page=1) {
+
+        let conn;
 
         try {
 
@@ -83,10 +86,8 @@ class Post {
 
             query += 'GROUP BY post.id'
 
-            let conn = await this.#db.getConnection();
+            conn = await this.#db.getConnection();
             let results = await paginate(conn, query, queryParameters, page);
-
-            conn.release();
 
             results.items = results.items.map((row)=> {
 
@@ -98,14 +99,20 @@ class Post {
 
         } catch (err) {
             throw new customError(500,err.message)
+        } finally {
+            if (conn) {
+                conn.release();
+            }
         }
 
     }
     async userFeed(user= User, page=1) {
 
+        let db;
+
         try {
 
-            let db = await _knext(await this.#db.getConnection());
+            db = await _knext(this.#db);
 
             page = isNaN(page) ? 1 : parseInt(page);
 
@@ -166,11 +173,17 @@ class Post {
 
         } catch (err) {
             throw new customError(500,err.message)
+        } finally {
+            if (db) {
+                await db.destroy();
+            }
         }
 
     }
 
     async getByUser(user= User) {
+
+        let conn;
 
         try {
 
@@ -232,9 +245,8 @@ class Post {
 
             query += 'GROUP BY post.id LIMIT 1'
 
-            let conn = await this.#db.getConnection();
-            let [rows] = await this.#db.execute(query, queryParameters);
-            conn.release();
+            conn = await this.#db.getConnection();
+            let [rows] = await conn.execute(query, queryParameters);
 
             return rows.length ?  rows.map((row)=> {
                 return Post.#formatPost(row);
@@ -242,6 +254,10 @@ class Post {
 
         } catch (err) {
             throw new customError(500,err.message)
+        } finally {
+            if (conn) {
+                conn.release();
+            }
         }
 
 
@@ -249,15 +265,17 @@ class Post {
 
     async addByUser(user = User, post = {}) {
 
+        let db;
+
         try {
 
             if (typeof post !== 'object' || !Object.entries(post).length) {
                 throw new customError(400,"Invalid post")
             }
 
-            if (!'type' in post || post.type === undefined) { throw new customError(400,"Missing post type") }
-            if (!'title' in post || post.title === undefined) { throw new customError(400,"Missing post title") }
-            if (!'description' in post || post.description === undefined) { throw new customError(400,"Missing post description") }
+            if (!('type' in post) || post.type === undefined) { throw new customError(400,"Missing post type") }
+            if (!('title' in post) || post.title === undefined) { throw new customError(400,"Missing post title") }
+            if (!('description' in post) || post.description === undefined) { throw new customError(400,"Missing post description") }
 
             let userAccess = user.access();
 
@@ -271,9 +289,14 @@ class Post {
                 throw new customError(400,"Invalid post type")
             }
 
-            let db = await _knext(await this.#db.getConnection());
+            db = await _knext(this.#db);
 
-            let slug = post.title.replace(/[^a-z0-9]/g, post.title.toLowerCase().trim().replace(/(<([^>]+)>)/gi, ""));
+            let slug = post.title
+                .toLowerCase()
+                .trim()
+                .replace(/(<([^>]+)>)/gi, "")
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
             let count = await db.table('post').where('slug', 'like', `${slug}%`).count({count: '*'}).first();
 
             if (count) {
@@ -299,6 +322,10 @@ class Post {
         } catch (err) {
             let errorCode = isNaN(err.code) ? 500 : err.code || 500
             throw new customError(errorCode ,err.message )
+        } finally {
+            if (db) {
+                await db.destroy();
+            }
 
         }
 
@@ -310,13 +337,15 @@ class Post {
             return;
         }
 
+        let db;
+
         try {
 
             const storage = new Storage();
-            let filename = image.name;
+            let filename = Post.#safeFilename(image.name);
             await storage.put(filename, await storage.get(image.tempFilePath));
 
-            let db = await _knext(await this.#db.getConnection());
+            db = await _knext(this.#db);
             await db.table('post')
                 .where('id', this.id())
                 .update({
@@ -327,6 +356,10 @@ class Post {
         } catch (err) {
             let errorCode = isNaN(err.code) ? 500 : err.code || 500
             throw new customError(errorCode ,err.message )
+        } finally {
+            if (db) {
+                await db.destroy();
+            }
         }
 
     }
@@ -372,6 +405,16 @@ class Post {
             },
         }
 
+    }
+
+    static #safeFilename(filename) {
+        filename = path.basename(filename || '').replace(/[^a-zA-Z0-9._-]/g, '-');
+
+        if (!filename.length || filename === '.' || filename === '..') {
+            throw new customError(400, 'Invalid thumbnail filename');
+        }
+
+        return filename;
     }
 
 

@@ -12,13 +12,16 @@ class Storage {
 
         path = `${this.#localPath}${path}`;
 
-        fs.writeFile(path, contents, function (err,data) {
-            if (err) {
-                throw new Error(err.message)
-            }
-            if (callback && typeof callback === 'function') {
-                callback(data)
-            }
+        return new Promise((resolve, reject) => {
+            fs.writeFile(path, contents, function (err,data) {
+                if (err) {
+                    return reject(new Error(err.message))
+                }
+                if (callback && typeof callback === 'function') {
+                    callback(data)
+                }
+                resolve(data)
+            });
         });
 
     }

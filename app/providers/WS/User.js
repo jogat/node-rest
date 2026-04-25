@@ -14,13 +14,14 @@ class User {
 
     async info() {
 
+        let conn;
+
         try {
 
             const query = "SELECT * FROM `user` WHERE id = ? LIMIT 1";
 
-            let conn = await this.#db.getConnection();
+            conn = await this.#db.getConnection();
             const [rows] = await conn.execute(query, [this.id()]);
-            conn.release();
 
             return {
                 'id': rows[0]['id'],
@@ -35,6 +36,10 @@ class User {
 
         } catch (err) {
             throw new customError(500, err.message)
+        } finally {
+            if (conn) {
+                conn.release();
+            }
         }
 
     }
@@ -46,6 +51,8 @@ class User {
 
     //@todo: move meta into its own class
     async meta(slug=null) {
+
+        let conn;
 
         try {
 
@@ -68,9 +75,8 @@ class User {
                                 LEFT JOIN user_meta ON user_has_meta.meta=user_meta.id
                        WHERE user_has_meta.user=?`;
 
-            let conn = await this.#db.getConnection();
+            conn = await this.#db.getConnection();
             const [rows] = await conn.execute(query, [this.id()]);
-            conn.release();
 
             let meta = {};
 
@@ -98,6 +104,10 @@ class User {
 
         } catch (err) {
             throw new customError(500, err.message)
+        } finally {
+            if (conn) {
+                conn.release();
+            }
         }
 
     }
@@ -105,14 +115,17 @@ class User {
     //@todo: move role into its own class
     async role(slug = null) {
 
+        let conn;
+
+        try {
+
         const query = `SELECT *
                        FROM user_has_role
                                 LEFT JOIN user_role ON user_has_role.role=user_role.id
                        WHERE user_has_role.user=?`;
 
-        let conn = await this.#db.getConnection();
+        conn = await this.#db.getConnection();
         const [rows] = await conn.execute(query, [this.id()]);
-        conn.release();
 
         let role = [];
 
@@ -133,6 +146,14 @@ class User {
         }
 
         return role;
+
+        } catch (err) {
+            throw new customError(500, err.message)
+        } finally {
+            if (conn) {
+                conn.release();
+            }
+        }
 
     }
 

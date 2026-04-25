@@ -1,37 +1,27 @@
 const {request, response} = require('express');
-const WS = require('../../providers/WS');
+const LoginRequest = require('../Requests/LoginRequest');
+const SessionService = require('../../Services/SessionService');
 
 class SessionController {
 
+    constructor(sessionService = new SessionService()) {
+        this.sessionService = sessionService;
+        this.login = this.login.bind(this);
+        this.data = this.data.bind(this);
+    }
+
     async login (req = request, res = response){
-                
-        try {
 
-            const {email, password, tenant_token, platform} = req.body;
+        const {email, password, tenant_token, platform} = new LoginRequest(req).validate();
+        let results = await this.sessionService.login(email, password, tenant_token, platform);
 
-            if (!email || !email.length) { return res.status(400).send('Missing email'); }
-            if (!password || !password.length) { return res.status(400).send('Missing password'); }
-
-            let results = await WS.session().login(email, password, tenant_token, platform);
-
-            res.json(results);
-
-
-        } catch(err) {            
-            res.status(err.code || 401).send(err.message || 'Invalid Login');
-        }
+        res.json(results);
         
     }
 
     async data (req = request, res = response){
 
-        try {
-
-            res.json(req._user);
-
-        } catch(err) {
-            res.status(err.code || 500).send(err.message);
-        }
+        res.json(req._user);
 
     }
 

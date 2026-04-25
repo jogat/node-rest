@@ -1,5 +1,7 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
+const configs = require('../config');
+const database = require('./db');
 
 class Server {
 
@@ -8,6 +10,7 @@ class Server {
         this.app = express();
         this.port = process.env.PORT;
         this.prefix = process.env.PREFIX;
+        this.db = database.knex(configs.getDatabaseConfig());
         
         //Global Middlewares
         this.middlewares();
@@ -45,6 +48,7 @@ class Server {
 
     routes() {
         this.app.use( `${this.prefix}/v1` , require('./routes/v1.routes'));
+        this.app.use(require('./http/middleware/errorHandler'));
     }
 
     listen() {

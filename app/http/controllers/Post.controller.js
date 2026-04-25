@@ -1,64 +1,39 @@
 const {request, response} = require('express');
-const WS = require('../../providers/WS');
+const StorePostRequest = require('../Requests/StorePostRequest');
+const PostService = require('../../Services/PostService');
 
 class PostController {
 
+    constructor(postService = new PostService()) {
+        this.postService = postService;
+        this.userFeed = this.userFeed.bind(this);
+        this.show = this.show.bind(this);
+        this.add = this.add.bind(this);
+    }
+
     async userFeed (req = request, res = response){
 
-        try {
+        let result = await this.postService.userFeed(req._user, req.query.page);
 
-            let result = await WS.post().userFeed(
-                WS.user().fromToken(req._user),
-                req.query.page
-            );
-
-            res.json(result);
-
-        } catch (err) {
-            console.log('josue')
-            //res.send(err.message);
-        }
+        res.json(result);
         
     }
 
     async show(req = request, res= response) {
 
-        try {
+        const id = parseInt(req.params.id);
+        let result = await this.postService.showForUser(id, req._user);
 
-            const id = parseInt(req.params.id);
-            let user = WS.user().fromToken(req._user);
-            let result = await WS.post(id).getByUser(user);
-
-            res.json(result)
-
-        } catch (err) {
-            res.status(err.code || 500).send(err.message);
-        }
+        res.json(result)
 
     }
 
     async add(req = request, res= response) {
 
-        // let storage = new Storage()
-        // console.log(storage);
+        let params = new StorePostRequest(req).validate();
+        let post = await this.postService.addByUser(req._user, params);
 
-        try {
-
-            let user = WS.user().fromToken(req._user);
-            let params = {
-                'type': parseInt(req.body.type),
-                'title': req.body.title,
-                'description': req.body.description,
-                'thumbnail': req.files && req.files.thumbnail ? req.files.thumbnail : null,
-            }
-
-            let post = await WS.post().addByUser( user, params);
-
-            res.json({'id': post.id()})
-
-        } catch (err) {
-            res.status(err.code || 500).send(err.message);
-        }
+        res.json(post)
 
     }
 
